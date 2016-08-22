@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Digital Globe</title>
+</head>
+
+<body>
+
+<h1>Population Globe</h1>
+
+<canvas id="canvas" style="border:1px solid #000000;">
+</canvas>
+<br>
+<button onclick="rotateLeft()">Left</button>
+<button onclick="rotateRight()">Right</button>
+
+</body>
+
+<script>
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var perspective = 0;
+var w = 300;
+var hw = w / 2;
+var cities = null;
+var perspectiveUnit = 5;
+
+main();
+
+function main() {
+    canvas.width = w;
+    canvas.height = w;
+
+    sendAJAX(null,"cities3.json");
+}
+
+function rotateLeft() {
+    if(perspective < 180) {
+        perspective += perspectiveUnit;
+    } else {
+        perspective = -180 + perspectiveUnit;
+    }
+    // console.log("perspective: "+perspective);
+    drawGlobe();
+}
+
+function rotateRight() {
+    if(perspective > -180+perspectiveUnit) {
+        perspective -= perspectiveUnit;
+    } else {
+        perspective = 180;
+    }
+    // console.log("perspective: "+perspective);
+    drawGlobe();
+}
+
+function drawGlobe() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.beginPath();
+    ctx.arc(hw,hw,hw,0,2*Math.PI);
+    ctx.stroke();
+    drawCities();
+}
+
+function drawCities() {
+    var top;
+    var bottom;
+    if(perspective >= 0) {
+        bottom = perspective - 90;
+        if(perspective + 90 <= 180) {
+            top = perspective + 90;
+        } else {
+            top = perspective - 270
+        }
+    } else {
+        top = perspective + 90;
+        if(perspective - 90 > -180) {
+            bottom = perspective - 90;
+        } else {
+            bottom = perspective + 270;
+        }
+    }
+    // console.log("top: "+top+", bottom: "+bottom);
+    for(var i =0;i<cities.length;i++) {
+        var city = cities[i];
+        var latitude = parseFloat(city.latitude.value);
+        var longitude = parseFloat(city.longitude.value);
+        if(longitude >= bottom) {
+            if(bottom + 180 >= 180) {
+                drawCoordinate(latitude, longitude - perspective);
+            } else if(longitude <= top) {
+                drawCoordinate(latitude, longitude - perspective);
+            } else {
+                // do nothing, out of view
+            }
+        } else if(longitude <= top) {
+            if(top - 180 <= -180) {
+                drawCoordinate(latitude, longitude - perspective);
+            } else {
+                // do nothing, out of view
+            }
+        } else {
+            // do nothing, out of view
+        }
+    }
+}
+
+function drawCoordinate(latDegrees, longDegrees) {
+    var latRadians = degreesToRadians(latDegrees);
+    var longRadians = degreesToRadians(longDegrees);
+
+    var latOffset = hw*Math.sin(latRadians);
+    var chordLength = pythagorus(latOffset, hw);
+    var longOffset = chordLength*Math.sin(longRadians);
+    drawPoint(
+        hw+longOffset,
+        hw-latOffset,
+        ctx
+    );
+}
+
+function pythagorus(b, c) {
+    return Math.sqrt(c*c - b*b);
+}
+
+function degreesToRadians(degrees) {
+    return degrees * (Math.PI / 180);
+}
+
+function drawPoint(x, y, ctx) {
+    var rectSize = 5;
+    ctx.fillRect(x-(rectSize/2),y-(rectSize/2),rectSize,rectSize);
+}
+
+function allTheDots() {
+    for(var i= -90;i<=90;i+= 5) {
+        for(var j= -90; j<= 90; j+= 5) {
+            drawCoordinate(i,j,ctx);
+        }
+    }
+}
+
+function sendAJAX(object,destination) {
+    //Build and send AJAX request via POST with proper variable assignments
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            recieveAJAX(xmlhttp.responseText);
+        }
+    }
+    xmlhttp.open("POST", destination);
+    xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xmlhttp.send("content="+JSON.stringify(object));
+}
+
+function recieveAJAX(responseText) {
+    var citiesObject = JSON.parse(responseText);
+    cities = citiesObject.results.bindings;
+    drawGlobe();
+}
+
+</script>
+
+</html>

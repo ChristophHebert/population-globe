@@ -1,0 +1,10 @@
+SELECT ?city (MAX(?latitude) as ?latitude) (MAX(?longitude) as ?longitude) WHERE {
+  ?city a dbo:City.
+  ?city geo:lat ?latitude.
+  ?city geo:long ?longitude.
+  ?city dbo:populationTotal ?population.
+  FILTER (?population > 10000)
+}
+GROUP BY ?city ?population
+ORDER BY DESC(?population)
+LIMIT 10000
