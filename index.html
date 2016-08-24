@@ -3,17 +3,41 @@
 
 <head>
     <title>Digital Globe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+    .display_block {
+        display:block;
+    }
+    .center_margin {
+        margin: 0 auto;
+    }
+    .center_text {
+        text-align: center;
+    }
+    button {
+        padding:15px;
+        border: none;
+        background-color: lightgrey;
+    }
+    .float_left {
+        float:left;
+    }
+    .float_right {
+        float:right;
+    }
+    </style>
 </head>
 
 <body>
 
-<h1>Population Globe</h1>
+<h1 class="display_block center_margin center_text">Population Globe</h1>
 
-<canvas id="canvas" style="border:1px solid #000000;">
+<canvas id="canvas" class="display_block center_margin" style="border:1px solid #000000;">
 </canvas>
 <br>
-<button onclick="rotateLeft()">Left</button>
-<button onclick="rotateRight()">Right</button>
+<button class="display_block float_left" onclick="rotateLeft()">Left</button>
+<button class="display_block float_right" onclick="rotateRight()">Right</button>
 
 </body>
 
