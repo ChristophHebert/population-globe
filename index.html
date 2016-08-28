@@ -6,6 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <style>
+    body, canvas {
+        margin: 0;
+        padding: 0;
+    }
     .display_block {
         display:block;
     }
@@ -26,18 +30,22 @@
     .float_right {
         float:right;
     }
+    #canvas {
+        border:1px solid #000000;
+        /*width: 100%;*/
+    }
     </style>
 </head>
 
 <body>
+<!--
+<h1 class="display_block center_margin center_text">Population Globe</h1> -->
 
-<h1 class="display_block center_margin center_text">Population Globe</h1>
-
-<canvas id="canvas" class="display_block center_margin" style="border:1px solid #000000;">
+<canvas id="canvas" class="display_block center_margin">
 </canvas>
-<br>
+<!-- <br>
 <button class="display_block float_left" onclick="rotateLeft()">Left</button>
-<button class="display_block float_right" onclick="rotateRight()">Right</button>
+<button class="display_block float_right" onclick="rotateRight()">Right</button> -->
 
 </body>
 
@@ -45,7 +53,12 @@
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var perspective = 0;
-var w = 300;
+var w;
+if(window.innerWidth < window.innerHeight) {
+    w = window.innerWidth;
+} else {
+    w = window.innerHeight;
+}
 var hw = w / 2;
 var cities = null;
 var perspectiveUnit = 5;
@@ -56,7 +69,7 @@ function main() {
     canvas.width = w;
     canvas.height = w;
 
-    sendAJAX(null,"cities3.json");
+    requestAJAX("cities3.json");
 }
 
 function rotateLeft() {
@@ -165,23 +178,83 @@ function allTheDots() {
     }
 }
 
-function sendAJAX(object,destination) {
-    //Build and send AJAX request via POST with proper variable assignments
+function requestAJAX(destination) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
             recieveAJAX(xmlhttp.responseText);
         }
     }
-    xmlhttp.open("POST", destination);
+    xmlhttp.open("GET", destination);
     xmlhttp.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xmlhttp.send("content="+JSON.stringify(object));
+    xmlhttp.send();
 }
 
 function recieveAJAX(responseText) {
     var citiesObject = JSON.parse(responseText);
     cities = citiesObject.results.bindings;
     drawGlobe();
+}
+
+var mouseDown = false;
+var mouseX = 0;
+mouseObserve();
+function mouseObserve() {
+    var canvas = document.getElementById("canvas");
+
+    if("ontouchstart" in window) {
+        canvas.addEventListener("touchstart", function(event) {
+            console.log("touch start "+event.touches[0].pageX);
+            mouseDown = true;
+            mouseX = event.touches[0].pageX;
+        });
+        canvas.addEventListener("touchmove", function(event) {
+            console.log("touch move "+event.touches[0].pageX);
+            if(mouseDown) {
+                if(difference(mouseX,event.touches[0].pageX) > perspectiveUnit) {
+                    if(mouseX > event.touches[0].pageX) {
+                        rotateLeft();
+                    } else {
+                        rotateRight();
+                    }
+                    mouseX = event.touches[0].pageX;
+                }
+            }
+        });
+        canvas.addEventListener("touchend", function(event) {
+            console.log("touch end");
+            if(mouseDown) {
+                mouseDown = false;
+            }
+        });
+    } else {
+        canvas.onmousedown = function(event) {
+            mouseDown = true;
+            mouseX = event.pageX;
+        }
+        canvas.onmousemove = function(event) {
+            if(mouseDown) {
+                if(difference(mouseX,event.pageX) > perspectiveUnit) {
+                    if(mouseX > event.pageX) {
+                        rotateLeft();
+                    } else {
+                        rotateRight();
+                    }
+                    mouseX = event.pageX;
+                }
+            }
+        }
+        canvas.onmouseup = function(event) {
+            if(mouseDown) {
+                mouseDown = false;
+            }
+        }
+    }
+}
+
+function difference(a,b) {
+    if(a > b) return a - b;
+    else return b - a;
 }
 
 </script>
