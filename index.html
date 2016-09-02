@@ -43,6 +43,12 @@ var hw = w / 2;
 var cities = null;
 var perspectiveUnit = 5;
 
+var rotationQueue = []; // left is negative, right is positive
+var rotating = false;
+
+var mouseDown = false;
+var mouseX = 0;
+
 main();
 
 function main() {
@@ -51,10 +57,9 @@ function main() {
     canvas.height = w;
 
     requestAJAX("cities3.json");
+    mouseObserve();
 }
 
-var rotationQueue = []; // left is negative, right is positive
-var rotating = false;
 function rotateQueue(direction) {
     if(typeof direction !== 'undefined') {
         rotationQueue.push(direction);
@@ -203,9 +208,7 @@ function recieveAJAX(responseText) {
     drawGlobe();
 }
 
-var mouseDown = false;
-var mouseX = 0;
-mouseObserve();
+
 function mouseObserve() {
     var canvas = document.getElementById("canvas");
 
