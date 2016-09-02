@@ -16,36 +16,16 @@
     .center_margin {
         margin: 0 auto;
     }
-    .center_text {
-        text-align: center;
-    }
-    button {
-        padding:15px;
-        border: none;
-        background-color: lightgrey;
-    }
-    .float_left {
-        float:left;
-    }
-    .float_right {
-        float:right;
-    }
     #canvas {
         border:1px solid #000000;
-        /*width: 100%;*/
     }
     </style>
 </head>
 
 <body>
-<!--
-<h1 class="display_block center_margin center_text">Population Globe</h1> -->
 
 <canvas id="canvas" class="display_block center_margin">
 </canvas>
-<!-- <br>
-<button class="display_block float_left" onclick="rotateLeft()">Left</button>
-<button class="display_block float_right" onclick="rotateRight()">Right</button> -->
 
 </body>
 
@@ -66,10 +46,58 @@ var perspectiveUnit = 5;
 main();
 
 function main() {
+    console.log("version: 0.0.3");
     canvas.width = w;
     canvas.height = w;
 
     requestAJAX("cities3.json");
+}
+
+var rotationQueue = []; // left is negative, right is positive
+var rotating = false;
+function rotateQueue(direction) {
+    if(typeof direction !== 'undefined') {
+        rotationQueue.push(direction);
+    }
+    if(!rotating && rotationQueue.length > 0) {
+        var units = 0;
+        while(rotationQueue.length > 0) {
+            units += rotationQueue.shift(); // left is negative, right is positive
+        }
+        if(units != 0) {
+            rotating = true;
+            rotate(units);
+        }
+    }
+}
+
+function rotate(units) {
+    // left is negative, right is positive
+    if(units > 0) { // right
+        while(units > 0) {
+            if(perspective > -180+perspectiveUnit) {
+                perspective -= perspectiveUnit;
+            } else {
+                perspective = 180;
+            }
+            units--;
+        }
+    } else if(units < 0) { // left
+        while(units < 0) {
+            if(perspective < 180) {
+                perspective += perspectiveUnit;
+            } else {
+                perspective = -180 + perspectiveUnit;
+            }
+            units++;
+        }
+    } else {
+        // shouldn't be called with units == 0
+    }
+
+    drawGlobe();
+    rotating = false;
+    rotateQueue();
 }
 
 function rotateLeft() {
@@ -201,25 +229,25 @@ function mouseObserve() {
 
     if("ontouchstart" in window) {
         canvas.addEventListener("touchstart", function(event) {
-            console.log("touch start "+event.touches[0].pageX);
             mouseDown = true;
             mouseX = event.touches[0].pageX;
         });
         canvas.addEventListener("touchmove", function(event) {
-            console.log("touch move "+event.touches[0].pageX);
+            event.preventDefault();
             if(mouseDown) {
                 if(difference(mouseX,event.touches[0].pageX) > perspectiveUnit) {
                     if(mouseX > event.touches[0].pageX) {
-                        rotateLeft();
+                        //rotateLeft();
+                        rotateQueue(-3);
                     } else {
-                        rotateRight();
+                        //rotateRight();
+                        rotateQueue(3);
                     }
                     mouseX = event.touches[0].pageX;
                 }
             }
         });
         canvas.addEventListener("touchend", function(event) {
-            console.log("touch end");
             if(mouseDown) {
                 mouseDown = false;
             }
@@ -233,9 +261,11 @@ function mouseObserve() {
             if(mouseDown) {
                 if(difference(mouseX,event.pageX) > perspectiveUnit) {
                     if(mouseX > event.pageX) {
-                        rotateLeft();
+                        //rotateLeft();
+                        rotateQueue(-1);
                     } else {
-                        rotateRight();
+                        //rotateRight();
+                        rotateQueue(1);
                     }
                     mouseX = event.pageX;
                 }

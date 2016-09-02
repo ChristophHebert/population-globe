@@ -11,7 +11,6 @@ City location data is pulled from DBpedia's [SPARQL interface](http://dbpedia.or
 Open index.html in a browser in a server-type environment (in other words, you have to using a local server like MAMP or actually have index.html and the corresponding .json files on a server in order for the send/recieveAjAX functions to work properly), and a globe should appear with buttons to rotate the rendering.
 
 ## ToDo:
-- Create a queue for rotation calculations, so that less overhead is placed on devices with poor processing (i.e. dragging globe in mobile browser causes slow rotation)
 - Use DBpedia links in json data to link each cities' dot to its corresponding Wikipedia page.
 - Add optional parameters for user to adjust population cutoff for cities.
 - Highlight a random city for user discovery upon each new page load.
