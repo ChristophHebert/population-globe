@@ -78,7 +78,6 @@ function rotateLeft() {
     } else {
         perspective = -180 + perspectiveUnit;
     }
-    // console.log("perspective: "+perspective);
     drawGlobe();
 }
 
@@ -88,7 +87,6 @@ function rotateRight() {
     } else {
         perspective = 180;
     }
-    // console.log("perspective: "+perspective);
     drawGlobe();
 }
 
@@ -118,7 +116,6 @@ function drawCities() {
             bottom = perspective + 270;
         }
     }
-    // console.log("top: "+top+", bottom: "+bottom);
     for(var i =0;i<cities.length;i++) {
         var city = cities[i];
         var latitude = parseFloat(city.latitude.value);
