@@ -223,8 +223,10 @@ function mouseObserve() {
                 if(difference(mouseX,event.touches[0].pageX) > perspectiveUnit) {
                     if(mouseX > event.touches[0].pageX) {
                         rotateQueue(-3);
-                    } else {
+                    } else if(mouseX < event.touches[0].pageX){
                         rotateQueue(3);
+                    } else {
+                        // do nothing, same place
                     }
                     mouseX = event.touches[0].pageX;
                 }
@@ -245,8 +247,10 @@ function mouseObserve() {
                 if(difference(mouseX,event.pageX) > perspectiveUnit) {
                     if(mouseX > event.pageX) {
                         rotateQueue(-1);
-                    } else {
+                    } else if(mouseX > event.pageX) {
                         rotateQueue(1);
+                    } else {
+                        // do nothing, same place
                     }
                     mouseX = event.pageX;
                 }
