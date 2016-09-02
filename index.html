@@ -247,7 +247,7 @@ function mouseObserve() {
                 if(difference(mouseX,event.pageX) > perspectiveUnit) {
                     if(mouseX > event.pageX) {
                         rotateQueue(-1);
-                    } else if(mouseX > event.pageX) {
+                    } else if(mouseX < event.pageX) {
                         rotateQueue(1);
                     } else {
                         // do nothing, same place
