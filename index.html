@@ -92,30 +92,12 @@ function rotate(units) {
             units++;
         }
     } else {
-        // shouldn't be called with units == 0
+        return; // no need to be called with 0 units
     }
 
     drawGlobe();
     rotating = false;
     rotateQueue();
-}
-
-function rotateLeft() {
-    if(perspective < 180) {
-        perspective += perspectiveUnit;
-    } else {
-        perspective = -180 + perspectiveUnit;
-    }
-    drawGlobe();
-}
-
-function rotateRight() {
-    if(perspective > -180+perspectiveUnit) {
-        perspective -= perspectiveUnit;
-    } else {
-        perspective = 180;
-    }
-    drawGlobe();
 }
 
 function drawGlobe() {
@@ -237,10 +219,8 @@ function mouseObserve() {
             if(mouseDown) {
                 if(difference(mouseX,event.touches[0].pageX) > perspectiveUnit) {
                     if(mouseX > event.touches[0].pageX) {
-                        //rotateLeft();
                         rotateQueue(-3);
                     } else {
-                        //rotateRight();
                         rotateQueue(3);
                     }
                     mouseX = event.touches[0].pageX;
@@ -261,10 +241,8 @@ function mouseObserve() {
             if(mouseDown) {
                 if(difference(mouseX,event.pageX) > perspectiveUnit) {
                     if(mouseX > event.pageX) {
-                        //rotateLeft();
                         rotateQueue(-1);
                     } else {
-                        //rotateRight();
                         rotateQueue(1);
                     }
                     mouseX = event.pageX;
