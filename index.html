@@ -1,10 +1,8 @@
 <!doctype html>
 <html>
-
 <head>
     <title>Population Globe</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <style>
     body, canvas {
         margin: 0;
@@ -21,53 +19,41 @@
     }
     </style>
 </head>
-
 <body>
-
-<canvas id="canvas" class="display_block center_margin">
-</canvas>
-
+    <canvas id="canvas" class="display_block center_margin">
+    </canvas>
 </body>
-
 <script>
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
-var perspective = 0;
-var w;
-if(window.innerWidth < window.innerHeight)  w = window.innerWidth;
-else  w = window.innerHeight;
-var hw = w / 2;
-var cities = null;
-var perspectiveUnit = 5;
-
-var rotationQueue = []; // left is negative, right is positive
-var rotating = false;
-
-var mouseDown = false;
-var mouseX = 0;
-
-main();
-
-function main() {
-    console.log("version: 0.0.3");
-    canvas.width = w;
-    canvas.height = w;
-
+window.onload = function() {
+    canvasInit();
     requestAJAX("cities3.json");
     mouseObserve();
 }
 
-function rotateQueue(direction) {
-    if(typeof direction !== 'undefined') {
-        rotationQueue.push(direction);
+function canvasInit() {
+    var canvas = document.getElementById("canvas");
+    if(window.innerWidth < window.innerHeight) {
+        canvas.width = canvas.height = window.innerWidth;
+    } else {
+        canvas.width = canvas.height = window.innerHeight;
     }
-    if(!rotating && rotationQueue.length > 0) {
+    canvas.perspective = 0;
+    canvas.perspectiveUnit = 5;
+    canvas.rotationQueue = [];
+}
+
+function rotateQueue(direction) {
+    var canvas = document.getElementById("canvas");
+    if(typeof direction !== 'undefined') {
+        canvas.rotationQueue.push(direction);
+    }
+    if(!canvas.rotating && canvas.rotationQueue.length > 0) {
         var units = 0;
-        while(rotationQueue.length > 0) {
-            units += rotationQueue.shift(); // left is negative, right is positive
+        while(canvas.rotationQueue.length > 0) {
+            units += canvas.rotationQueue.shift(); // left is negative, right is positive
         }
         if(units != 0) {
-            rotating = true;
+            canvas.rotating = true;
             rotate(units);
         }
     }
@@ -75,21 +61,22 @@ function rotateQueue(direction) {
 
 function rotate(units) {
     // left is negative, right is positive
+    var canvas = document.getElementById("canvas");
     if(units > 0) { // right
         while(units > 0) {
-            if(perspective > -180+perspectiveUnit) {
-                perspective -= perspectiveUnit;
+            if(canvas.perspective > -180+canvas.perspectiveUnit) {
+                canvas.perspective -= canvas.perspectiveUnit;
             } else {
-                perspective = 180;
+                canvas.perspective = 180;
             }
             units--;
         }
     } else if(units < 0) { // left
         while(units < 0) {
-            if(perspective < 180) {
-                perspective += perspectiveUnit;
+            if(canvas.perspective < 180) {
+                canvas.perspective += canvas.perspectiveUnit;
             } else {
-                perspective = -180 + perspectiveUnit;
+                canvas.perspective = -180 + canvas.perspectiveUnit;
             }
             units++;
         }
@@ -98,51 +85,55 @@ function rotate(units) {
     }
 
     drawGlobe();
-    rotating = false;
+    canvas.rotating = false;
     rotateQueue();
 }
 
 function drawGlobe() {
+    var canvas = document.getElementById("canvas");
+    var ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.beginPath();
+    var hw = canvas.width / 2;
     ctx.arc(hw,hw,hw,0,2*Math.PI);
     ctx.stroke();
     drawCities();
 }
 
 function drawCities() {
+    var canvas = document.getElementById("canvas");
     var top;
     var bottom;
-    if(perspective >= 0) {
-        bottom = perspective - 90;
-        if(perspective + 90 <= 180) {
-            top = perspective + 90;
+    if(canvas.perspective >= 0) {
+        bottom = canvas.perspective - 90;
+        if(canvas.perspective + 90 <= 180) {
+            top = canvas.perspective + 90;
         } else {
-            top = perspective - 270
+            top = canvas.perspective - 270
         }
     } else {
-        top = perspective + 90;
-        if(perspective - 90 > -180) {
-            bottom = perspective - 90;
+        top = canvas.perspective + 90;
+        if(canvas.perspective - 90 > -180) {
+            bottom = canvas.perspective - 90;
         } else {
-            bottom = perspective + 270;
+            bottom = canvas.perspective + 270;
         }
     }
-    for(var i =0;i<cities.length;i++) {
-        var city = cities[i];
+    for(var i =0;i<canvas.cities.length;i++) {
+        var city = canvas.cities[i];
         var latitude = parseFloat(city.latitude.value);
         var longitude = parseFloat(city.longitude.value);
         if(longitude >= bottom) {
             if(bottom + 180 >= 180) {
-                drawCoordinate(latitude, longitude - perspective);
+                drawCoordinate(latitude, longitude - canvas.perspective);
             } else if(longitude <= top) {
-                drawCoordinate(latitude, longitude - perspective);
+                drawCoordinate(latitude, longitude - canvas.perspective);
             } else {
                 // do nothing, out of view
             }
         } else if(longitude <= top) {
             if(top - 180 <= -180) {
-                drawCoordinate(latitude, longitude - perspective);
+                drawCoordinate(latitude, longitude - canvas.perspective);
             } else {
                 // do nothing, out of view
             }
@@ -153,6 +144,9 @@ function drawCities() {
 }
 
 function drawCoordinate(latDegrees, longDegrees) {
+    var canvas = document.getElementById("canvas");
+    var hw = canvas.width / 2;
+
     var latRadians = degreesToRadians(latDegrees);
     var longRadians = degreesToRadians(longDegrees);
 
@@ -161,8 +155,7 @@ function drawCoordinate(latDegrees, longDegrees) {
     var longOffset = chordLength*Math.sin(longRadians);
     drawPoint(
         hw+longOffset,
-        hw-latOffset,
-        ctx
+        hw-latOffset
     );
 }
 
@@ -174,7 +167,8 @@ function degreesToRadians(degrees) {
     return degrees * (Math.PI / 180);
 }
 
-function drawPoint(x, y, ctx) {
+function drawPoint(x, y) {
+    var ctx = document.getElementById("canvas").getContext("2d");
     var rectSize = 5;
     ctx.fillRect(x-(rectSize/2),y-(rectSize/2),rectSize,rectSize);
 }
@@ -182,7 +176,7 @@ function drawPoint(x, y, ctx) {
 function allTheDots() {
     for(var i= -90;i<=90;i+= 5) {
         for(var j= -90; j<= 90; j+= 5) {
-            drawCoordinate(i,j,ctx);
+            drawCoordinate(i,j);
         }
     }
 }
@@ -201,7 +195,8 @@ function requestAJAX(destination) {
 
 function recieveAJAX(responseText) {
     var citiesObject = JSON.parse(responseText);
-    cities = citiesObject.results.bindings;
+    var canvas = document.getElementById("canvas");
+    canvas.cities = citiesObject.results.bindings;
     drawGlobe();
 }
 
@@ -210,51 +205,51 @@ function mouseObserve() {
 
     if("ontouchstart" in window) {
         canvas.addEventListener("touchstart", function(event) {
-            mouseDown = true;
-            mouseX = event.touches[0].pageX;
+            canvas.cphMouseDown = true;
+            canvas.cphMouseX = event.touches[0].pageX;
         });
         canvas.addEventListener("touchmove", function(event) {
             event.preventDefault();
-            if(mouseDown) {
-                if(difference(mouseX,event.touches[0].pageX) > perspectiveUnit) {
-                    if(mouseX > event.touches[0].pageX) {
+            if(canvas.cphMouseDown) {
+                if(difference(canvas.cphMouseX,event.touches[0].pageX) > canvas.perspectiveUnit) {
+                    if(canvas.cphMouseX > event.touches[0].pageX) {
                         rotateQueue(-3);
-                    } else if(mouseX < event.touches[0].pageX){
+                    } else if(canvas.cphMouseX < event.touches[0].pageX){
                         rotateQueue(3);
                     } else {
                         // do nothing, same place
                     }
-                    mouseX = event.touches[0].pageX;
+                    canvas.cphMouseX = event.touches[0].pageX;
                 }
             }
         });
         canvas.addEventListener("touchend", function(event) {
-            if(mouseDown) {
-                mouseDown = false;
+            if(canvas.cphMouseDown) {
+                canvas.cphMouseDown = false;
             }
         });
     } else {
         canvas.onmousedown = function(event) {
-            mouseDown = true;
-            mouseX = event.pageX;
+            canvas.cphMouseDown = true;
+            canvas.cphMouseX = event.pageX;
         }
         canvas.onmousemove = function(event) {
-            if(mouseDown) {
-                if(difference(mouseX,event.pageX) > perspectiveUnit) {
-                    if(mouseX > event.pageX) {
+            if(canvas.cphMouseDown) {
+                if(difference(canvas.cphMouseX,event.pageX) > canvas.perspectiveUnit) {
+                    if(canvas.cphMouseX > event.pageX) {
                         rotateQueue(-1);
-                    } else if(mouseX < event.pageX) {
+                    } else if(canvas.cphMouseX < event.pageX) {
                         rotateQueue(1);
                     } else {
                         // do nothing, same place
                     }
-                    mouseX = event.pageX;
+                    canvas.cphMouseX = event.pageX;
                 }
             }
         }
         canvas.onmouseup = function(event) {
-            if(mouseDown) {
-                mouseDown = false;
+            if(canvas.cphMouseDown) {
+                canvas.cphMouseDown = false;
             }
         }
     }
@@ -266,5 +261,4 @@ function difference(a,b) {
 }
 
 </script>
-
 </html>
