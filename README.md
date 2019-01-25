@@ -4,6 +4,4 @@ Population globe is a digital rendering of the earth using latitudes and longitu
 
 View on [this repository's "Github Pages" page!](https://cphbrt.github.io/population-globe/ "Population Globe").
 
-![rendering of globe using city locations](https://christophhebert.com/population-globe/image.png "Population Globe")
-
 City location data is pulled from DBpedia's [SPARQL interface](http://dbpedia.org/sparql) using the queries currently in the .txt files, and stored in the corresponding .json files.
